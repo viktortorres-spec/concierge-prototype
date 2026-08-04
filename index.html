@@ -367,6 +367,52 @@
   .mitem svg{flex:none;opacity:.85}
   .mitem .sub{display:block;font-size:11px;color:#8E97A6;font-weight:400;margin-top:2px}
   .mitem.logout-m{color:var(--orange-light);margin-top:auto;border-bottom:none}
+
+  /* ---------- extras UI/UX ---------- */
+  .island{
+    position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:118px;height:32px;background:#05080C;border-radius:18px;z-index:65;pointer-events:none;
+  }
+  @media (max-width:430px){.island{display:none}}
+  .toast{
+    position:absolute;left:50%;bottom:108px;transform:translate(-50%,16px);
+    background:var(--navy);color:#fff;font-size:13px;font-weight:600;
+    padding:10px 18px;border-radius:22px;opacity:0;pointer-events:none;
+    transition:all .3s;z-index:80;box-shadow:0 8px 22px rgba(0,0,0,.3);
+    max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .eye{
+    position:absolute;right:12px;bottom:13px;border:none;background:none;
+    cursor:pointer;color:var(--muted);display:flex;padding:2px;
+  }
+  .spin{
+    width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);
+    border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .empty{display:none;text-align:center;color:var(--muted);font-size:13px;padding:36px 0 22px}
+  .empty.show{display:block}
+  .hide{display:none!important}
+  .badge{
+    position:absolute;top:-4px;right:-6px;min-width:16px;height:16px;border-radius:8px;
+    background:var(--red);color:#fff;font-size:9.5px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;padding:0 4px;
+    box-shadow:0 0 0 2px rgba(255,255,255,.25);
+  }
+  .nav-item{position:relative}
+  .nav-item .badge{top:-2px;right:12px}
+  .greet{position:absolute;top:104px;left:20px;z-index:2;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+  .greet .h{font-size:22px;font-weight:800}
+  .greet .d{font-size:12.5px;opacity:.9;margin-top:3px}
+  .goal{margin-top:18px}
+  .goal .glbl{display:flex;justify-content:space-between;font-size:11px;opacity:.78}
+  .goal .gbar{height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:6px;overflow:hidden}
+  .goal .gbar i{
+    display:block;height:100%;width:0;border-radius:3px;
+    background:linear-gradient(90deg,var(--orange),var(--orange-light));
+    transition:width 1s cubic-bezier(.3,.8,.3,1) .25s;
+  }
 </style>
 </head>
 <body>
@@ -375,13 +421,15 @@
 
   <!-- status bar -->
   <div class="statusbar on-dark" id="statusbar">
-    <span>9:41</span>
+    <span id="sbtime">9:41</span>
     <span class="icons">
       <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
       <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.5a1.4 1.4 0 100 2.8 1.4 1.4 0 000-2.8z" transform="translate(0,-1.8)"/><path d="M8 6.2c1.3 0 2.5.5 3.4 1.4l-1.2 1.2A3.3 3.3 0 008 7.9c-.9 0-1.7.3-2.2.9L4.6 7.6A4.8 4.8 0 018 6.2z"/><path d="M8 3c2.2 0 4.2.9 5.7 2.3l-1.2 1.2A6.4 6.4 0 008 4.7c-1.7 0-3.3.7-4.5 1.8L2.3 5.3A8 8 0 018 3z" transform="translate(0,-1.4)"/></svg>
       <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="8" rx="1.6" fill="currentColor"/><rect x="22.5" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".4"/></svg>
     </span>
   </div>
+  <div class="island"></div>
+  <div class="toast" id="toast"></div>
 
   <!-- ================= SPLASH ================= -->
   <section class="screen active" id="splash" data-status="dark">
@@ -408,11 +456,14 @@
           <label>Usuario</label>
           <input type="text" placeholder="Ingresa tu usuario" value="mariana.testera">
         </div>
-        <div class="field">
+        <div class="field" style="position:relative">
           <label>Contraseña</label>
-          <input type="password" placeholder="••••••••" value="12345678">
+          <input type="password" id="passInput" placeholder="••••••••" value="12345678">
+          <button class="eye" onclick="togglePass()" aria-label="Mostrar contraseña">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
         </div>
-        <button class="btn" style="margin-top:30px" onclick="go('home')">Entrar</button>
+        <button class="btn" style="margin-top:30px" onclick="loginGo(this)">Entrar</button>
         <p class="login-link">¿Aún no tienes cuenta? <a href="#" onclick="return false">Regístrate Aquí</a></p>
       </div>
     </div>
@@ -427,24 +478,26 @@
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 6h16M3 11h16M3 16h10"/></svg>
           </button>
           <div class="brand">CONCIERGE</div>
-          <button class="iconbtn" onclick="go('notifs')" aria-label="Notificaciones">
+          <button class="iconbtn" onclick="go('notifs')" aria-label="Notificaciones" style="position:relative">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+            <span class="badge notif-badge">2</span>
           </button>
         </div>
+        <div class="greet"><div class="h">Hola, Mariana 👋</div><div class="d" id="greetDate"></div></div>
         <div class="stats">
           <div class="stat"><div class="lbl">Comisiones de Hoy</div><div class="val">$0.00</div></div>
           <div class="stat"><div class="lbl">Acumulado Mes</div><div class="val orange">$12,000.00</div></div>
         </div>
       </div>
-      <div class="home-body">
+      <div class="home-body" id="homeList">
         <button class="btn" onclick="go('ciudad')">Nueva Reserva</button>
         <div class="section-title">MIS RESERVAS</div>
         <div class="chips">
-          <button class="chip active" onclick="pick(this)">Para Hoy</button>
-          <button class="chip" onclick="pick(this)">Esta Semana</button>
-          <button class="chip" onclick="pick(this)">Último Mes</button>
+          <button class="chip active" data-box="homeList" data-val="hoy" onclick="filt(this)">Para Hoy</button>
+          <button class="chip" data-box="homeList" data-val="semana" onclick="filt(this)">Esta Semana</button>
+          <button class="chip" data-box="homeList" data-val="mes" onclick="filt(this)">Último Mes</button>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="hoy semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#2E5E8C">IL</div>
             <div class="rinfo"><div class="rname">ILIOS</div><div class="rcity">Cancún</div></div>
@@ -459,7 +512,7 @@
             </div>
           </div>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="hoy semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#8C2E3F">N</div>
             <div class="rinfo"><div class="rname">NICOLETTA</div><div class="rcity">Cancún</div></div>
@@ -474,7 +527,7 @@
             </div>
           </div>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#3E7C5B">LV</div>
             <div class="rinfo"><div class="rname">LA VICENTA</div><div class="rcity">Cancún</div></div>
@@ -489,6 +542,7 @@
             </div>
           </div>
         </div>
+        <div class="empty">Sin reservas en este periodo</div>
       </div>
     </div>
   </section>
@@ -503,14 +557,14 @@
       <span style="width:38px"></span>
     </div>
     <div class="scroll">
-      <div style="padding:18px 16px 24px">
+      <div style="padding:18px 16px 24px" id="resList">
         <div class="section-title" style="margin-top:4px">MIS RESERVAS</div>
         <div class="chips">
-          <button class="chip active" onclick="pick(this)">Para Hoy</button>
-          <button class="chip" onclick="pick(this)">Esta Semana</button>
-          <button class="chip" onclick="pick(this)">Último Mes</button>
+          <button class="chip active" data-box="resList" data-val="hoy" onclick="filt(this)">Para Hoy</button>
+          <button class="chip" data-box="resList" data-val="semana" onclick="filt(this)">Esta Semana</button>
+          <button class="chip" data-box="resList" data-val="mes" onclick="filt(this)">Último Mes</button>
         </div>
-        <div class="rcard open">
+        <div class="rcard open" data-tags="hoy semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:var(--navy)">H</div>
             <div class="rinfo"><div class="rname">HARRY'S</div><div class="rcity">Cancún</div></div>
@@ -524,18 +578,18 @@
               <div class="drow"><div class="dlbl">Hora</div><div class="dval">14:15</div></div>
               <div class="drow full"><div class="dlbl">Teléfono</div>
                 <div class="dval">+52 000 000 0000
-                  <span class="copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
+                  <span class="copy" data-val="+52 000 000 0000" onclick="copyVal(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
                 </div>
               </div>
               <div class="drow full"><div class="dlbl">E-mail</div>
                 <div class="dval">kiko.diaz@gmail.com
-                  <span class="copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
+                  <span class="copy" data-val="kiko.diaz@gmail.com" onclick="copyVal(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="hoy semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#2E5E8C">IL</div>
             <div class="rinfo"><div class="rname">ILIOS</div><div class="rcity">Cancún</div></div>
@@ -550,7 +604,7 @@
             </div>
           </div>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="hoy semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#8C2E3F">N</div>
             <div class="rinfo"><div class="rname">NICOLETTA</div><div class="rcity">Cancún</div></div>
@@ -565,7 +619,7 @@
             </div>
           </div>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#3E7C5B">LV</div>
             <div class="rinfo"><div class="rname">LA VICENTA</div><div class="rcity">Cancún</div></div>
@@ -580,7 +634,7 @@
             </div>
           </div>
         </div>
-        <div class="rcard">
+        <div class="rcard" data-tags="mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#7A4A2B">P</div>
             <div class="rinfo"><div class="rname">PORFIRIO'S</div><div class="rcity">Cancún</div></div>
@@ -595,6 +649,7 @@
             </div>
           </div>
         </div>
+        <div class="empty">Sin reservas en este periodo</div>
       </div>
     </div>
   </section>
@@ -611,11 +666,11 @@
     <div class="scroll">
       <div class="sel-title">SELECCIONA UNA CIUDAD</div>
       <div class="sel-list">
-        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">CANCÚN</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">CIUDAD DE MÉXICO</div><div class="sub">CDMX, México</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">PLAYA DEL CARMEN</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">TULUM</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">LOS CABOS</div><div class="sub">Baja California Sur, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-city="Cancún" onclick="chooseCity(this)"><div class="txt"><div class="name">CANCÚN</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-city="Ciudad de México" onclick="chooseCity(this)"><div class="txt"><div class="name">CIUDAD DE MÉXICO</div><div class="sub">CDMX, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-city="Playa del Carmen" onclick="chooseCity(this)"><div class="txt"><div class="name">PLAYA DEL CARMEN</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-city="Tulum" onclick="chooseCity(this)"><div class="txt"><div class="name">TULUM</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-city="Los Cabos" onclick="chooseCity(this)"><div class="txt"><div class="name">LOS CABOS</div><div class="sub">Baja California Sur, México</div></div><span class="chev"></span></div>
       </div>
     </div>
   </section>
@@ -632,11 +687,11 @@
     <div class="scroll">
       <div class="sel-title">SELECCIONA UNA UNIDAD</div>
       <div class="sel-list">
-        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:var(--navy)">H</div><div class="txt"><div class="name">HARRY'S</div><div class="sub">Prime Steakhouse &amp; Raw Bar · Cancún</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#7A4A2B">P</div><div class="txt"><div class="name">PORFIRIO'S</div><div class="sub">Cocina mexicana · Cancún</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#2E5E8C">IL</div><div class="txt"><div class="name">ILIOS</div><div class="sub">Greek estiatorio · Cancún</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#3E7C5B">LV</div><div class="txt"><div class="name">LA VICENTA</div><div class="sub">Carnes y cortes · Cancún</div></div><span class="chev"></span></div>
-        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#8C2E3F">N</div><div class="txt"><div class="name">NICOLETTA</div><div class="sub">Italian bistro · Cancún</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-name="HARRY'S" data-bg="#1E2837" data-ini="H" onclick="chooseRest(this)"><div class="rlogo" style="background:var(--navy)">H</div><div class="txt"><div class="name">HARRY'S</div><div class="sub">Prime Steakhouse &amp; Raw Bar</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-name="PORFIRIO'S" data-bg="#7A4A2B" data-ini="P" onclick="chooseRest(this)"><div class="rlogo" style="background:#7A4A2B">P</div><div class="txt"><div class="name">PORFIRIO'S</div><div class="sub">Cocina mexicana</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-name="ILIOS" data-bg="#2E5E8C" data-ini="IL" onclick="chooseRest(this)"><div class="rlogo" style="background:#2E5E8C">IL</div><div class="txt"><div class="name">ILIOS</div><div class="sub">Greek estiatorio</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-name="LA VICENTA" data-bg="#3E7C5B" data-ini="LV" onclick="chooseRest(this)"><div class="rlogo" style="background:#3E7C5B">LV</div><div class="txt"><div class="name">LA VICENTA</div><div class="sub">Carnes y cortes</div></div><span class="chev"></span></div>
+        <div class="sel-item" data-name="NICOLETTA" data-bg="#8C2E3F" data-ini="N" onclick="chooseRest(this)"><div class="rlogo" style="background:#8C2E3F">N</div><div class="txt"><div class="name">NICOLETTA</div><div class="sub">Italian bistro</div></div><span class="chev"></span></div>
       </div>
     </div>
   </section>
@@ -654,8 +709,8 @@
       <div class="form-pad">
         <div class="sel-title" style="padding:6px 0 0">RESERVACIÓN</div>
         <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
-          <div class="rlogo" style="background:var(--navy)">H</div>
-          <div><div class="rname">HARRY'S</div><div class="rcity">Cancún</div></div>
+          <div class="rlogo" id="restLogo" style="background:var(--navy)">H</div>
+          <div><div class="rname" id="restName">HARRY'S</div><div class="rcity" id="restCity">Cancún</div></div>
         </div>
 
         <div class="flabel">Cantidad de Personas</div>
@@ -687,12 +742,12 @@
 
         <div class="flabel">Elige un Horario</div>
         <div class="times">
-          <button class="chip" onclick="pick(this)">13:00</button>
-          <button class="chip" onclick="pick(this)">13:30</button>
-          <button class="chip active" onclick="pick(this)">14:00</button>
-          <button class="chip" onclick="pick(this)">14:30</button>
-          <button class="chip" onclick="pick(this)">15:00</button>
-          <button class="chip" onclick="pick(this)">20:00</button>
+          <button class="chip" onclick="pickT(this)">13:00</button>
+          <button class="chip" onclick="pickT(this)">13:30</button>
+          <button class="chip active" onclick="pickT(this)">14:00</button>
+          <button class="chip" onclick="pickT(this)">14:30</button>
+          <button class="chip" onclick="pickT(this)">15:00</button>
+          <button class="chip" onclick="pickT(this)">20:00</button>
         </div>
 
         <button class="btn" style="margin-top:32px" onclick="go('confirm')">Continuar</button>
@@ -707,7 +762,7 @@
         <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
       </div></div>
       <h1 style="font-size:24px;letter-spacing:.08em;color:var(--navy);font-weight:800;margin-top:28px">¡RESERVA ENVIADA!</h1>
-      <p style="font-size:14px;color:var(--muted);margin-top:12px;line-height:1.55">HARRY'S Cancún · 4 personas<br>12 de Octubre · 14:00 hrs<br><br>Recibirás una notificación cuando el restaurante confirme tu reserva.</p>
+      <p id="confSummary" style="font-size:14px;color:var(--muted);margin-top:12px;line-height:1.55">HARRY'S Cancún · 4 personas<br>12 de Octubre · 14:00 hrs<br><br>Recibirás una notificación cuando el restaurante confirme tu reserva.</p>
       <button class="btn" style="margin-top:36px" onclick="go('home')">Ir a Inicio</button>
     </div>
   </section>
@@ -719,41 +774,46 @@
         <div class="sel">Acumulado Mayo <span class="chev"></span></div>
         <div class="big">$16,820.00</div>
         <div class="sub">Pagado: $12,000.00 · Pesos Mexicanos</div>
+        <div class="goal">
+          <div class="glbl"><span>Meta mensual</span><span>84% de $20,000.00</span></div>
+          <div class="gbar"><i id="goalBar"></i></div>
+        </div>
       </div>
       <div style="padding:16px 16px 0">
         <div class="section-title" style="margin-top:2px">MIS COMISIONES</div>
         <div class="chips">
-          <button class="chip active" onclick="pick(this)">Todas</button>
-          <button class="chip" onclick="pick(this)">Pagadas</button>
-          <button class="chip" onclick="pick(this)">Pendientes</button>
+          <button class="chip active" data-box="comList" data-val="todas" onclick="filt(this)">Todas</button>
+          <button class="chip" data-box="comList" data-val="pagada" onclick="filt(this)">Pagadas</button>
+          <button class="chip" data-box="comList" data-val="pendiente" onclick="filt(this)">Pendientes</button>
         </div>
       </div>
-      <div class="com-list">
-        <div class="crow">
+      <div class="com-list" id="comList">
+        <div class="crow" data-tags="pendiente">
           <div class="rlogo" style="background:var(--navy)">H</div>
           <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">HARRY'S</div><div class="t3">Kiko Díaz · 12 de Junio</div></div>
           <div class="rright"><div class="ramount">MXN 4,120.00</div><div class="status orange">PENDIENTE</div></div>
         </div>
-        <div class="crow">
+        <div class="crow" data-tags="pendiente">
           <div class="rlogo" style="background:#2E5E8C">IL</div>
           <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">ILIOS</div><div class="t3">Alberto J. Torres · 12 de Junio</div></div>
           <div class="rright"><div class="ramount">MXN 2,435.00</div><div class="status orange">PENDIENTE</div></div>
         </div>
-        <div class="crow">
+        <div class="crow" data-tags="pagada">
           <div class="rlogo" style="background:#8C2E3F">N</div>
           <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">NICOLETTA</div><div class="t3">María Pérez · 8 de Junio</div></div>
           <div class="rright"><div class="ramount">MXN 5,812.00</div><div class="status green">PAGADA</div></div>
         </div>
-        <div class="crow">
+        <div class="crow" data-tags="pagada">
           <div class="rlogo" style="background:#3E7C5B">LV</div>
           <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">LA VICENTA</div><div class="t3">Gustavo Fonseca · 2 de Junio</div></div>
           <div class="rright"><div class="ramount">MXN 1,541.00</div><div class="status green">PAGADA</div></div>
         </div>
-        <div class="crow">
+        <div class="crow" data-tags="pagada">
           <div class="rlogo" style="background:#7A4A2B">P</div>
           <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">PORFIRIO'S</div><div class="t3">Laura Medina · 30 de Mayo</div></div>
           <div class="rright"><div class="ramount">MXN 2,912.00</div><div class="status green">PAGADA</div></div>
         </div>
+        <div class="empty">Sin comisiones con este filtro</div>
       </div>
     </div>
   </section>
@@ -766,43 +826,44 @@
       <span style="width:38px"></span>
     </div>
     <div class="scroll">
-      <div style="padding:18px 16px 24px">
+      <div style="padding:18px 16px 24px" id="notifList">
         <div class="section-title" style="margin-top:4px">NOTIFICACIONES</div>
         <div class="chips">
-          <button class="chip active" onclick="pick(this)">Todas</button>
-          <button class="chip" onclick="pick(this)">Citas</button>
-          <button class="chip" onclick="pick(this)">No leídas</button>
+          <button class="chip active" data-box="notifList" data-val="todas" onclick="filt(this)">Todas</button>
+          <button class="chip" data-box="notifList" data-val="cita" onclick="filt(this)">Citas</button>
+          <button class="chip" data-box="notifList" data-val="unread" onclick="filt(this)">No leídas</button>
         </div>
-        <div class="nitem">
+        <div class="nitem" data-tags="cita unread" onclick="markRead(this)">
           <div class="nicon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
           <div class="ntxt"><div class="nt1">RESERVA CONFIRMADA</div><div class="nt2">HARRY'S Cancún confirmó la reserva de Kiko Díaz para el 12 de Junio, 14:15.</div></div>
           <div class="ntime">2 min</div><span class="ndot"></span>
         </div>
-        <div class="nitem">
+        <div class="nitem" data-tags="pago unread" onclick="markRead(this)">
           <div class="nicon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
           <div class="ntxt"><div class="nt1">DEPÓSITO EN FONDOS</div><div class="nt2">Se depositaron $12,000.00 MXN a tu cuenta Mercado Pago terminación 4567.</div></div>
           <div class="ntime">1 h</div><span class="ndot"></span>
         </div>
-        <div class="nitem">
+        <div class="nitem" data-tags="cita" onclick="markRead(this)">
           <div class="nicon red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
           <div class="ntxt"><div class="nt1">RESERVA CANCELADA</div><div class="nt2">PORFIRIO'S Cancún: la reserva de Carlos Castellón fue cancelada por el cliente.</div></div>
           <div class="ntime">3 h</div>
         </div>
-        <div class="nitem">
+        <div class="nitem" data-tags="pago" onclick="markRead(this)">
           <div class="nicon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
           <div class="ntxt"><div class="nt1">PENDIENTE DE PAGO</div><div class="nt2">Tu comisión de ILIOS ($2,435.00) está en proceso de pago.</div></div>
           <div class="ntime">Ayer</div>
         </div>
-        <div class="nitem">
+        <div class="nitem" data-tags="cita" onclick="markRead(this)">
           <div class="nicon navy"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></div>
           <div class="ntxt"><div class="nt1">RESERVA MODIFICADA</div><div class="nt2">NICOLETTA: la reserva de María Pérez cambió a 4 comensales, 20:30 hrs.</div></div>
           <div class="ntime">Ayer</div>
         </div>
-        <div class="nitem">
+        <div class="nitem" data-tags="pago" onclick="markRead(this)">
           <div class="nicon red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg></div>
           <div class="ntxt"><div class="nt1">PAGO FALLIDO</div><div class="nt2">No pudimos depositar tu comisión. Verifica tu Clabe Interbancaria en Perfil.</div></div>
           <div class="ntime">2 jun</div>
         </div>
+        <div class="empty">Sin notificaciones con este filtro</div>
       </div>
     </div>
   </section>
@@ -871,7 +932,7 @@
     </button>
     <button class="nav-item" data-nav="notifs" onclick="go('notifs')">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-      Avisos<span class="ind"></span>
+      Avisos<span class="ind"></span><span class="badge notif-badge">2</span>
     </button>
     <button class="nav-item" data-nav="perfil" onclick="go('perfil')">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
@@ -885,6 +946,13 @@
     <div class="panel">
       <button class="close" onclick="closeMenu()" aria-label="Cerrar">✕</button>
       <div class="brand">CONCIERGE</div>
+      <div style="display:flex;align-items:center;gap:12px;margin:-16px 0 24px">
+        <div style="width:44px;height:44px;border-radius:50%;flex:none;background:url('https://picsum.photos/seed/mariana-profile/100/100') center/cover;box-shadow:0 0 0 2px rgba(255,255,255,.2)"></div>
+        <div>
+          <div style="font-size:14px;font-weight:700">Mariana Testera</div>
+          <div style="font-size:10.5px;color:#8E97A6;letter-spacing:.16em;margin-top:2px">CONCIERGE · HOTEL 1</div>
+        </div>
+      </div>
       <button class="mitem" onclick="closeMenu();go('ciudad')">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M12 13.5v5M9.5 16h5"/></svg>
         Nueva Reserva
@@ -917,10 +985,15 @@
 <script>
   const statusbar = document.getElementById('statusbar');
   const bottomnav = document.getElementById('bottomnav');
+  const toast = document.getElementById('toast');
   let current = 'splash';
+  let toastTimer = null;
+
+  const state = { rest: "HARRY'S", city: 'Cancún', bg: '#1E2837', ini: 'H', pers: '4', dia: '12', hora: '14:00' };
 
   function go(id){
     if (id === current) return;
+    if (id === 'confirm') updateConfirm();
     const prev = document.getElementById(current);
     const next = document.getElementById(id);
     prev.classList.remove('active');
@@ -931,6 +1004,7 @@
     current = id;
 
     statusbar.classList.toggle('on-dark', next.dataset.status === 'dark');
+    if (id === 'comisiones') document.getElementById('goalBar').style.width = '84%';
 
     const navKey = next.dataset.nav;
     bottomnav.classList.toggle('show', !!navKey);
@@ -938,21 +1012,107 @@
       b.classList.toggle('active', b.dataset.nav === navKey));
   }
 
+  function loginGo(btn){
+    btn.innerHTML = '<span class="spin"></span>';
+    setTimeout(() => { go('home'); btn.textContent = 'Entrar'; }, 750);
+  }
+  function togglePass(){
+    const input = document.getElementById('passInput');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
   function toggleCard(head){ head.parentElement.classList.toggle('open'); }
   function pick(chip){
     chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
   }
+
+  function filt(chip){
+    pick(chip);
+    const val = chip.dataset.val;
+    const box = document.getElementById(chip.dataset.box);
+    let visible = 0;
+    box.querySelectorAll('[data-tags]').forEach(item => {
+      const show = val === 'todas' || item.dataset.tags.split(' ').includes(val);
+      item.classList.toggle('hide', !show);
+      if (show) visible++;
+    });
+    box.querySelector('.empty')?.classList.toggle('show', !visible);
+  }
+
+  function markRead(item){
+    if (!item.querySelector('.ndot')) return;
+    item.querySelector('.ndot').remove();
+    item.dataset.tags = item.dataset.tags.replace('unread', '').trim();
+    updateBadges();
+    showToast('Notificación leída');
+  }
+  function updateBadges(){
+    const unread = document.querySelectorAll('#notifs .ndot').length;
+    document.querySelectorAll('.notif-badge').forEach(b => {
+      b.textContent = unread;
+      b.style.display = unread ? 'flex' : 'none';
+    });
+  }
+
+  function copyVal(el){
+    const val = el.dataset.val || '';
+    navigator.clipboard?.writeText(val).catch(() => {});
+    showToast('Copiado: ' + val);
+  }
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+
+  function chooseCity(el){
+    state.city = el.dataset.city;
+    go('unidad');
+  }
+  function chooseRest(el){
+    state.rest = el.dataset.name;
+    state.bg = el.dataset.bg;
+    state.ini = el.dataset.ini;
+    const logo = document.getElementById('restLogo');
+    logo.style.background = state.bg;
+    logo.textContent = state.ini;
+    document.getElementById('restName').textContent = state.rest;
+    document.getElementById('restCity').textContent = state.city;
+    go('reservacion');
+  }
   function pickP(el){
     el.parentElement.querySelectorAll('.pnum').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    state.pers = el.textContent === '+' ? '6+' : el.textContent;
   }
   function pickD(el){
+    if (el.classList.contains('dim')) return;
     el.closest('.cal-grid').querySelectorAll('.d').forEach(c => c.classList.remove('sel'));
     el.classList.add('sel');
+    state.dia = el.textContent;
   }
+  function pickT(el){ pick(el); state.hora = el.textContent; }
+  function updateConfirm(){
+    document.getElementById('confSummary').innerHTML =
+      `${state.rest} ${state.city} · ${state.pers} personas<br>${state.dia} de Octubre · ${state.hora} hrs<br><br>Recibirás una notificación cuando el restaurante confirme tu reserva.`;
+  }
+
   function openMenu(){ document.getElementById('menuOverlay').classList.add('open'); }
   function closeMenu(){ document.getElementById('menuOverlay').classList.remove('open'); }
+
+  function tick(){
+    document.getElementById('sbtime').textContent =
+      new Date().toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', hour12: false });
+  }
+  tick();
+  setInterval(tick, 30000);
+  const hoy = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('greetDate').textContent = hoy.charAt(0).toUpperCase() + hoy.slice(1);
+
+  document.querySelectorAll('.chip.active[data-box]').forEach(c => filt(c));
+  updateBadges();
 
   setTimeout(() => go('login'), 2300);
 </script>
