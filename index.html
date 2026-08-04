@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>App Concierge by CC — Prototipo</title>
+<style>
+  :root{
+    --navy:#1E2837;
+    --navy-deep:#141C28;
+    --orange:#C77E3E;
+    --orange-light:#E09A5A;
+    --bg:#F4F4F6;
+    --green:#2FA860;
+    --red:#D64541;
+    --text:#2B2B2B;
+    --muted:#8A8F98;
+    --line:#E7E8EC;
+    --card-shadow:0 2px 10px rgba(20,28,40,.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:#0E141D;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;
+    background-image:radial-gradient(circle at 30% 20%, #1B2636 0%, #0E141D 60%);
+  }
+  .phone{
+    width:390px;height:844px;
+    background:var(--bg);
+    border-radius:46px;
+    overflow:hidden;
+    position:relative;
+    box-shadow:0 0 0 12px #05080C,0 0 0 14px #2A3648,0 40px 80px rgba(0,0,0,.6);
+  }
+  @media (max-width:430px), (max-height:900px) and (max-width:430px){
+    body{background:var(--bg)}
+    .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;box-shadow:none}
+  }
+
+  /* ---------- status bar ---------- */
+  .statusbar{
+    position:absolute;top:0;left:0;right:0;height:44px;z-index:60;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 24px;font-size:14px;font-weight:600;color:var(--navy);
+    pointer-events:none;transition:color .3s;
+  }
+  .statusbar.on-dark{color:#fff}
+  .statusbar .icons{display:flex;gap:6px;align-items:center}
+  .statusbar svg{display:block}
+
+  /* ---------- screens ---------- */
+  .screen{
+    position:absolute;inset:0;
+    background:var(--bg);
+    transform:translateX(100%);
+    transition:transform .34s cubic-bezier(.4,0,.2,1),opacity .34s;
+    opacity:0;pointer-events:none;
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
+  .screen.active{transform:translateX(0);opacity:1;pointer-events:auto;z-index:10}
+  .screen.behind{transform:translateX(-24%);opacity:0}
+  .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+  .scroll::-webkit-scrollbar{display:none}
+
+  /* ---------- brand ---------- */
+  .brand{
+    font-family:Georgia,"Times New Roman",serif;
+    letter-spacing:.14em;font-weight:700;color:#fff;
+    text-align:center;line-height:1.15;
+  }
+  .brand .grupo{display:block;font-size:10px;letter-spacing:.5em;font-weight:400;opacity:.85}
+  .brand.navy{color:var(--navy)}
+
+  /* ---------- splash ---------- */
+  #splash{background:linear-gradient(160deg,#232F42 0%,var(--navy-deep) 70%);align-items:center;justify-content:center}
+  #splash .brand{font-size:30px}
+  #splash .bar{width:150px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:26px auto 0;overflow:hidden}
+  #splash .bar i{display:block;height:100%;width:0;background:var(--orange);border-radius:2px;animation:load 1.9s ease forwards}
+  @keyframes load{to{width:100%}}
+
+  /* ---------- login ---------- */
+  #login{background:#fff;padding:0 30px}
+  #login .top{margin-top:92px;text-align:center}
+  #login .brand{font-size:22px}
+  #login h1{margin-top:44px;font-size:30px;letter-spacing:.06em;color:var(--navy);font-weight:800}
+  #login h2{font-size:16px;color:var(--orange);font-weight:600;margin-top:6px}
+  .field{margin-top:18px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:7px;letter-spacing:.04em}
+  .field input,.field select{
+    width:100%;height:50px;border:1.4px solid var(--line);border-radius:12px;
+    padding:0 16px;font-size:15px;color:var(--text);background:#fff;outline:none;
+    appearance:none;-webkit-appearance:none;
+  }
+  .field input:focus,.field select:focus{border-color:var(--orange)}
+  .field.select{position:relative}
+  .field.select::after{
+    content:"";position:absolute;right:18px;bottom:21px;width:9px;height:9px;
+    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:rotate(45deg);pointer-events:none;
+  }
+  .btn{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;height:52px;border:none;border-radius:14px;
+    background:var(--orange);color:#fff;font-size:16px;font-weight:700;
+    letter-spacing:.04em;cursor:pointer;box-shadow:0 8px 18px rgba(199,126,62,.35);
+    transition:transform .12s,box-shadow .12s;
+  }
+  .btn:active{transform:scale(.97);box-shadow:0 4px 10px rgba(199,126,62,.3)}
+  .btn.ghost{background:transparent;color:var(--orange);box-shadow:none;border:1.5px solid var(--orange)}
+  #login .btn{margin-top:30px}
+  .login-link{margin-top:22px;text-align:center;font-size:13px;color:var(--muted)}
+  .login-link a{color:var(--orange);font-weight:700;text-decoration:none}
+
+  /* ---------- generic header ---------- */
+  .appbar{
+    height:96px;padding:52px 18px 0;display:flex;align-items:center;gap:10px;
+    background:#fff;border-bottom:1px solid var(--line);flex:none;
+  }
+  .appbar .brand{font-size:15px;flex:1;text-align:center}
+  .iconbtn{
+    width:38px;height:38px;border:none;background:transparent;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--navy);
+  }
+  .iconbtn:active{background:rgba(30,40,55,.07)}
+
+  /* ---------- home ---------- */
+  #home .hero{
+    position:relative;height:264px;flex:none;
+    background:#3a4657 url('https://picsum.photos/seed/andersons-terrace/780/560') center/cover;
+  }
+  #home .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,21,30,.55) 0%,rgba(15,21,30,.05) 45%,rgba(15,21,30,.72) 100%)}
+  #home .hero .topbar{
+    position:absolute;top:52px;left:14px;right:14px;z-index:2;
+    display:flex;align-items:center;
+  }
+  #home .hero .brand{font-size:16px;flex:1;text-align:center}
+  #home .hero .iconbtn{color:#fff}
+  .stats{
+    position:absolute;left:18px;right:18px;bottom:18px;z-index:2;
+    display:flex;gap:12px;
+  }
+  .stat{
+    flex:1;background:rgba(20,28,40,.62);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:16px;padding:12px 14px;color:#fff;
+  }
+  .stat .lbl{font-size:11px;opacity:.8;letter-spacing:.03em}
+  .stat .val{font-size:20px;font-weight:800;margin-top:3px}
+  .stat .val.orange{color:var(--orange-light)}
+  .home-body{padding:18px}
+  .section-title{
+    font-size:14px;font-weight:800;letter-spacing:.12em;color:var(--navy);
+    margin:22px 0 12px;
+  }
+  .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    flex:none;height:34px;padding:0 16px;border-radius:17px;
+    border:1.4px solid var(--line);background:#fff;color:var(--muted);
+    font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;
+    transition:all .15s;
+  }
+  .chip.active{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 4px 10px rgba(199,126,62,.3)}
+
+  /* ---------- reserva cards ---------- */
+  .rcard{
+    background:#fff;border-radius:16px;box-shadow:var(--card-shadow);
+    margin-top:12px;overflow:hidden;
+  }
+  .rcard-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+  .rlogo{
+    width:44px;height:44px;border-radius:12px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    font-family:Georgia,serif;font-weight:700;font-size:15px;color:#fff;
+    letter-spacing:.02em;
+  }
+  .rinfo{flex:1;min-width:0}
+  .rname{font-size:14px;font-weight:800;letter-spacing:.08em;color:var(--navy)}
+  .rcity{font-size:12px;color:var(--muted);margin-top:2px}
+  .rright{text-align:right}
+  .ramount{font-size:14px;font-weight:800;color:var(--navy)}
+  .status{font-size:10px;font-weight:800;letter-spacing:.08em;margin-top:4px}
+  .status.green{color:var(--green)}
+  .status.red{color:var(--red)}
+  .status.gray{color:var(--muted)}
+  .status.orange{color:var(--orange)}
+  .rcard-body{
+    max-height:0;overflow:hidden;transition:max-height .3s ease;
+    border-top:0 solid var(--line);
+  }
+  .rcard.open .rcard-body{max-height:340px;border-top:1px solid var(--line)}
+  .detail{padding:14px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
+  .drow{min-width:0}
+  .drow.full{grid-column:1/-1}
+  .dlbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+  .dval{font-size:14px;font-weight:600;color:var(--navy);margin-top:3px;display:flex;align-items:center;gap:8px}
+  .copy{color:var(--orange);cursor:pointer;display:flex}
+
+  /* ---------- selector screens (ciudad/unidad) ---------- */
+  .sel-title{
+    padding:26px 22px 8px;font-size:17px;font-weight:800;letter-spacing:.1em;
+    color:var(--orange);
+  }
+  .sel-list{padding:8px 16px 24px}
+  .sel-item{
+    background:#fff;border-radius:16px;box-shadow:var(--card-shadow);
+    display:flex;align-items:center;gap:14px;padding:16px;margin-top:12px;cursor:pointer;
+    transition:transform .12s;
+  }
+  .sel-item:active{transform:scale(.98)}
+  .sel-item .txt{flex:1}
+  .sel-item .name{font-size:15px;font-weight:800;letter-spacing:.07em;color:var(--navy)}
+  .sel-item .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .chev{width:9px;height:9px;border-right:2px solid var(--orange);border-top:2px solid var(--orange);transform:rotate(45deg);flex:none}
+
+  /* ---------- reservación ---------- */
+  .form-pad{padding:20px 22px 30px}
+  .flabel{font-size:13px;font-weight:700;color:var(--navy);margin:22px 0 10px;letter-spacing:.03em}
+  .pers{display:flex;gap:10px}
+  .pnum{
+    width:44px;height:44px;border-radius:50%;border:1.4px solid var(--line);
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:700;color:var(--navy);cursor:pointer;transition:all .15s;
+  }
+  .pnum.active{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 4px 10px rgba(199,126,62,.35)}
+  .cal{background:#fff;border-radius:16px;box-shadow:var(--card-shadow);padding:16px}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .cal-head .m{font-size:13px;font-weight:800;letter-spacing:.1em;color:var(--navy)}
+  .cal-head button{border:none;background:none;color:var(--orange);font-size:18px;cursor:pointer;padding:4px 10px}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+  .cal-grid .dow{font-size:10px;font-weight:700;color:var(--muted);padding:4px 0}
+  .cal-grid .d{
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;color:var(--navy);border-radius:50%;cursor:pointer;
+  }
+  .cal-grid .d.dim{color:#C8CBD2}
+  .cal-grid .d.sel{background:var(--orange);color:#fff;font-weight:800;box-shadow:0 4px 10px rgba(199,126,62,.4)}
+  .times{display:flex;gap:8px;flex-wrap:wrap}
+  .times .chip{height:38px;border-radius:12px}
+
+  /* ---------- confirm ---------- */
+  #confirm{background:#fff;align-items:center;justify-content:center;text-align:center;padding:0 40px}
+  .check{
+    width:110px;height:110px;border-radius:50%;background:rgba(47,168,96,.12);
+    display:flex;align-items:center;justify-content:center;margin:0 auto;
+  }
+  .check .inner{
+    width:78px;height:78px;border-radius:50%;background:var(--green);
+    display:flex;align-items:center;justify-content:center;
+    animation:pop .45s cubic-bezier(.3,1.6,.6,1) both;
+  }
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  #confirm h1{font-size:24px;letter-spacing:.08em;color:var(--navy);font-weight:800;margin-top:28px}
+  #confirm p{font-size:14px;color:var(--muted);margin-top:12px;line-height:1.55}
+  #confirm .btn{margin-top:36px}
+
+  /* ---------- comisiones ---------- */
+  .com-hero{
+    background:linear-gradient(165deg,#26334A 0%,var(--navy-deep) 85%);
+    padding:108px 24px 26px;color:#fff;flex:none;
+  }
+  .com-hero .sel{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.85;font-weight:600;letter-spacing:.04em}
+  .com-hero .sel .chev{border-color:#fff;transform:rotate(135deg);width:7px;height:7px;opacity:.8}
+  .com-hero .big{font-size:38px;font-weight:800;margin-top:8px;color:var(--orange-light)}
+  .com-hero .sub{font-size:13px;opacity:.75;margin-top:6px}
+  .com-list{padding:4px 16px 24px}
+  .crow{
+    background:#fff;border-radius:16px;box-shadow:var(--card-shadow);
+    display:flex;align-items:center;gap:12px;padding:14px 16px;margin-top:12px;
+  }
+  .crow .txt{flex:1;min-width:0}
+  .crow .t1{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted)}
+  .crow .t2{font-size:14px;font-weight:800;color:var(--navy);margin-top:3px;letter-spacing:.05em}
+  .crow .t3{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+  /* ---------- notificaciones ---------- */
+  .nitem{
+    background:#fff;border-radius:16px;box-shadow:var(--card-shadow);
+    display:flex;gap:12px;padding:14px 16px;margin-top:12px;position:relative;cursor:pointer;
+  }
+  .nicon{
+    width:40px;height:40px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .nicon.green{background:rgba(47,168,96,.13);color:var(--green)}
+  .nicon.orange{background:rgba(199,126,62,.14);color:var(--orange)}
+  .nicon.red{background:rgba(214,69,65,.12);color:var(--red)}
+  .nicon.navy{background:rgba(30,40,55,.09);color:var(--navy)}
+  .ntxt{flex:1;min-width:0}
+  .nt1{font-size:12.5px;font-weight:800;letter-spacing:.06em;color:var(--navy)}
+  .nt2{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .ntime{font-size:11px;color:var(--muted);flex:none}
+  .ndot{position:absolute;top:16px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--orange)}
+
+  /* ---------- perfil ---------- */
+  .prof-top{padding:110px 24px 6px;text-align:center;flex:none}
+  .avatar{
+    width:96px;height:96px;border-radius:50%;margin:0 auto;
+    background:url('https://picsum.photos/seed/mariana-profile/200/200') center/cover;
+    box-shadow:0 0 0 4px #fff,0 6px 16px rgba(20,28,40,.18);
+  }
+  .prof-top h1{font-size:17px;font-weight:800;letter-spacing:.08em;color:var(--navy);margin-top:14px}
+  .prof-top h2{font-size:12px;font-weight:800;letter-spacing:.22em;color:var(--orange);margin-top:5px}
+  .pcard{background:#fff;border-radius:16px;box-shadow:var(--card-shadow);margin-top:12px;padding:4px 16px}
+  .pcard .ptitle{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--muted);padding:14px 0 4px}
+  .prow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+  .prow:first-of-type{border-top:none}
+  .prow .txt{flex:1;min-width:0}
+  .prow .l{font-size:11px;color:var(--muted);font-weight:600}
+  .prow .v{font-size:14px;font-weight:600;color:var(--navy);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pnote{font-size:11px;color:var(--muted);padding:0 0 14px;line-height:1.5}
+  .logout{
+    display:block;text-align:center;color:var(--red);font-weight:700;font-size:14px;
+    padding:20px 0 8px;cursor:pointer;background:none;border:none;width:100%;
+  }
+
+  /* ---------- bottom nav ---------- */
+  .bottomnav{
+    position:absolute;left:0;right:0;bottom:0;height:84px;z-index:50;
+    background:#fff;border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;align-items:flex-start;
+    padding:10px 8px 0;
+    transform:translateY(100%);transition:transform .3s;
+  }
+  .bottomnav.show{transform:translateY(0)}
+  .nav-item{
+    border:none;background:none;cursor:pointer;color:#9AA0AA;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:9.5px;font-weight:700;letter-spacing:.03em;width:58px;
+    transition:color .15s;
+  }
+  .nav-item.active{color:var(--orange)}
+  .nav-item .ind{width:18px;height:3px;border-radius:2px;background:transparent;margin-top:2px}
+  .nav-item.active .ind{background:var(--orange)}
+  .has-nav .scroll{padding-bottom:96px}
+
+  /* ---------- menú overlay ---------- */
+  #menuOverlay{
+    position:absolute;inset:0;z-index:70;pointer-events:none;
+  }
+  #menuOverlay .shade{
+    position:absolute;inset:0;background:rgba(8,12,18,.5);opacity:0;transition:opacity .3s;
+  }
+  #menuOverlay .panel{
+    position:absolute;top:0;bottom:0;left:0;width:300px;
+    background:linear-gradient(170deg,#26334A 0%,var(--navy-deep) 80%);
+    transform:translateX(-100%);transition:transform .32s cubic-bezier(.4,0,.2,1);
+    padding:64px 26px 30px;color:#fff;display:flex;flex-direction:column;
+  }
+  #menuOverlay.open{pointer-events:auto}
+  #menuOverlay.open .shade{opacity:1}
+  #menuOverlay.open .panel{transform:translateX(0)}
+  #menuOverlay .close{
+    position:absolute;top:56px;right:18px;border:none;background:none;color:#fff;
+    font-size:22px;cursor:pointer;opacity:.7;
+  }
+  #menuOverlay .brand{font-size:17px;text-align:left;margin-bottom:34px}
+  .mitem{
+    display:flex;align-items:center;gap:14px;padding:15px 0;cursor:pointer;
+    color:#E6E9EF;font-size:15px;font-weight:600;border:none;background:none;text-align:left;
+    border-bottom:1px solid rgba(255,255,255,.07);width:100%;
+  }
+  .mitem svg{flex:none;opacity:.85}
+  .mitem .sub{display:block;font-size:11px;color:#8E97A6;font-weight:400;margin-top:2px}
+  .mitem.logout-m{color:var(--orange-light);margin-top:auto;border-bottom:none}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+
+  <!-- status bar -->
+  <div class="statusbar on-dark" id="statusbar">
+    <span>9:41</span>
+    <span class="icons">
+      <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.5a1.4 1.4 0 100 2.8 1.4 1.4 0 000-2.8z" transform="translate(0,-1.8)"/><path d="M8 6.2c1.3 0 2.5.5 3.4 1.4l-1.2 1.2A3.3 3.3 0 008 7.9c-.9 0-1.7.3-2.2.9L4.6 7.6A4.8 4.8 0 018 6.2z"/><path d="M8 3c2.2 0 4.2.9 5.7 2.3l-1.2 1.2A6.4 6.4 0 008 4.7c-1.7 0-3.3.7-4.5 1.8L2.3 5.3A8 8 0 018 3z" transform="translate(0,-1.4)"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="8" rx="1.6" fill="currentColor"/><rect x="22.5" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".4"/></svg>
+    </span>
+  </div>
+
+  <!-- ================= SPLASH ================= -->
+  <section class="screen active" id="splash" data-status="dark">
+    <div style="margin:auto;text-align:center">
+      <div class="brand"><span class="grupo">GRUPO</span>ANDERSON'S</div>
+      <div class="bar"><i></i></div>
+    </div>
+  </section>
+
+  <!-- ================= LOGIN ================= -->
+  <section class="screen" id="login" data-status="light">
+    <div class="scroll">
+      <div class="top" style="margin-top:88px;text-align:center">
+        <div class="brand navy"><span class="grupo">GRUPO</span>ANDERSON'S</div>
+      </div>
+      <div style="padding:0 30px">
+        <h1 style="margin-top:44px;font-size:30px;letter-spacing:.06em;color:var(--navy);font-weight:800">BIENVENIDO</h1>
+        <h2 style="font-size:16px;color:var(--orange);font-weight:600;margin-top:6px">Inicia Sesión</h2>
+        <div class="field select" style="margin-top:30px">
+          <label>Hotel</label>
+          <select><option>Hotel 1</option><option>Hotel 2</option><option>Hotel 3</option></select>
+        </div>
+        <div class="field">
+          <label>Usuario</label>
+          <input type="text" placeholder="Ingresa tu usuario" value="mariana.testera">
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" placeholder="••••••••" value="12345678">
+        </div>
+        <button class="btn" style="margin-top:30px" onclick="go('home')">Entrar</button>
+        <p class="login-link">¿Aún no tienes cuenta? <a href="#" onclick="return false">Regístrate Aquí</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HOME ================= -->
+  <section class="screen has-nav" id="home" data-status="dark" data-nav="home">
+    <div class="scroll">
+      <div class="hero">
+        <div class="topbar">
+          <button class="iconbtn" onclick="openMenu()" aria-label="Menú">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 6h16M3 11h16M3 16h10"/></svg>
+          </button>
+          <div class="brand">ANDERSON'S</div>
+          <button class="iconbtn" onclick="go('notifs')" aria-label="Notificaciones">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          </button>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Comisiones de Hoy</div><div class="val">$0.00</div></div>
+          <div class="stat"><div class="lbl">Acumulado Mes</div><div class="val orange">$12,000.00</div></div>
+        </div>
+      </div>
+      <div class="home-body">
+        <button class="btn" onclick="go('ciudad')">Nueva Reserva</button>
+        <div class="section-title">MIS RESERVAS</div>
+        <div class="chips">
+          <button class="chip active" onclick="pick(this)">Para Hoy</button>
+          <button class="chip" onclick="pick(this)">Esta Semana</button>
+          <button class="chip" onclick="pick(this)">Último Mes</button>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#2E5E8C">IL</div>
+            <div class="rinfo"><div class="rname">ILIOS</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 2,435.00</div><div class="status green">CONFIRMADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">Alberto J. Torres</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">2</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">12 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">13:00</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#8C2E3F">N</div>
+            <div class="rinfo"><div class="rname">NICOLETTA</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 5,812.00</div><div class="status gray">FINALIZADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">María Pérez</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">4</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">8 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">20:30</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#3E7C5B">LV</div>
+            <div class="rinfo"><div class="rname">LA VICENTA</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 1,541.00</div><div class="status green">PAGADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">Gustavo Fonseca</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">3</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">2 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">15:00</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MIS RESERVAS ================= -->
+  <section class="screen has-nav" id="reservas" data-status="light" data-nav="reservas">
+    <div class="appbar">
+      <button class="iconbtn" onclick="go('home')" aria-label="Atrás">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="brand navy">ANDERSON'S</div>
+      <span style="width:38px"></span>
+    </div>
+    <div class="scroll">
+      <div style="padding:18px 16px 24px">
+        <div class="section-title" style="margin-top:4px">MIS RESERVAS</div>
+        <div class="chips">
+          <button class="chip active" onclick="pick(this)">Para Hoy</button>
+          <button class="chip" onclick="pick(this)">Esta Semana</button>
+          <button class="chip" onclick="pick(this)">Último Mes</button>
+        </div>
+        <div class="rcard open">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:var(--navy)">H</div>
+            <div class="rinfo"><div class="rname">HARRY'S</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 4,120.00</div><div class="status green">CONFIRMADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">Kiko Díaz</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">5</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">12 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">14:15</div></div>
+              <div class="drow full"><div class="dlbl">Teléfono</div>
+                <div class="dval">+52 000 000 0000
+                  <span class="copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
+                </div>
+              </div>
+              <div class="drow full"><div class="dlbl">E-mail</div>
+                <div class="dval">kiko.diaz@gmail.com
+                  <span class="copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#2E5E8C">IL</div>
+            <div class="rinfo"><div class="rname">ILIOS</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 2,435.00</div><div class="status green">CONFIRMADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">Alberto J. Torres</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">2</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">12 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">13:00</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#8C2E3F">N</div>
+            <div class="rinfo"><div class="rname">NICOLETTA</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 5,812.00</div><div class="status gray">FINALIZADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">María Pérez</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">4</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">8 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">20:30</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#3E7C5B">LV</div>
+            <div class="rinfo"><div class="rname">LA VICENTA</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 1,541.00</div><div class="status green">PAGADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">Gustavo Fonseca</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">3</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">2 de Junio</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">15:00</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head" onclick="toggleCard(this)">
+            <div class="rlogo" style="background:#7A4A2B">P</div>
+            <div class="rinfo"><div class="rname">PORFIRIO'S</div><div class="rcity">Cancún</div></div>
+            <div class="rright"><div class="ramount">MXN 4,789.00</div><div class="status red">CANCELADA</div></div>
+          </div>
+          <div class="rcard-body">
+            <div class="detail">
+              <div class="drow"><div class="dlbl">Nombre Reserva</div><div class="dval">Carlos Castellón</div></div>
+              <div class="drow"><div class="dlbl">Comensales</div><div class="dval">6</div></div>
+              <div class="drow"><div class="dlbl">Fecha</div><div class="dval">28 de Mayo</div></div>
+              <div class="drow"><div class="dlbl">Hora</div><div class="dval">21:00</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NUEVA RESERVA: CIUDAD ================= -->
+  <section class="screen" id="ciudad" data-status="light">
+    <div class="appbar">
+      <button class="iconbtn" onclick="go('home')" aria-label="Atrás">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="brand navy">ANDERSON'S</div>
+      <span style="width:38px"></span>
+    </div>
+    <div class="scroll">
+      <div class="sel-title">SELECCIONA UNA CIUDAD</div>
+      <div class="sel-list">
+        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">CANCÚN</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">CIUDAD DE MÉXICO</div><div class="sub">CDMX, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">PLAYA DEL CARMEN</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">TULUM</div><div class="sub">Quintana Roo, México</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('unidad')"><div class="txt"><div class="name">LOS CABOS</div><div class="sub">Baja California Sur, México</div></div><span class="chev"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NUEVA RESERVA: UNIDAD ================= -->
+  <section class="screen" id="unidad" data-status="light">
+    <div class="appbar">
+      <button class="iconbtn" onclick="go('ciudad')" aria-label="Atrás">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="brand navy">ANDERSON'S</div>
+      <span style="width:38px"></span>
+    </div>
+    <div class="scroll">
+      <div class="sel-title">SELECCIONA UNA UNIDAD</div>
+      <div class="sel-list">
+        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:var(--navy)">H</div><div class="txt"><div class="name">HARRY'S</div><div class="sub">Prime Steakhouse &amp; Raw Bar · Cancún</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#7A4A2B">P</div><div class="txt"><div class="name">PORFIRIO'S</div><div class="sub">Cocina mexicana · Cancún</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#2E5E8C">IL</div><div class="txt"><div class="name">ILIOS</div><div class="sub">Greek estiatorio · Cancún</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#3E7C5B">LV</div><div class="txt"><div class="name">LA VICENTA</div><div class="sub">Carnes y cortes · Cancún</div></div><span class="chev"></span></div>
+        <div class="sel-item" onclick="go('reservacion')"><div class="rlogo" style="background:#8C2E3F">N</div><div class="txt"><div class="name">NICOLETTA</div><div class="sub">Italian bistro · Cancún</div></div><span class="chev"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NUEVA RESERVA: FORM ================= -->
+  <section class="screen" id="reservacion" data-status="light">
+    <div class="appbar">
+      <button class="iconbtn" onclick="go('unidad')" aria-label="Atrás">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="brand navy">ANDERSON'S</div>
+      <span style="width:38px"></span>
+    </div>
+    <div class="scroll">
+      <div class="form-pad">
+        <div class="sel-title" style="padding:6px 0 0">RESERVACIÓN</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+          <div class="rlogo" style="background:var(--navy)">H</div>
+          <div><div class="rname">HARRY'S</div><div class="rcity">Cancún</div></div>
+        </div>
+
+        <div class="flabel">Cantidad de Personas</div>
+        <div class="pers">
+          <button class="pnum" onclick="pickP(this)">1</button>
+          <button class="pnum" onclick="pickP(this)">2</button>
+          <button class="pnum" onclick="pickP(this)">3</button>
+          <button class="pnum active" onclick="pickP(this)">4</button>
+          <button class="pnum" onclick="pickP(this)">5</button>
+          <button class="pnum" onclick="pickP(this)">+</button>
+        </div>
+
+        <div class="flabel">Fecha de Reserva</div>
+        <div class="cal">
+          <div class="cal-head">
+            <button aria-label="Mes anterior">‹</button>
+            <span class="m">OCTUBRE 2026</span>
+            <button aria-label="Mes siguiente">›</button>
+          </div>
+          <div class="cal-grid">
+            <span class="dow">L</span><span class="dow">M</span><span class="dow">M</span><span class="dow">J</span><span class="dow">V</span><span class="dow">S</span><span class="dow">D</span>
+            <span class="d dim">28</span><span class="d dim">29</span><span class="d dim">30</span><span class="d" onclick="pickD(this)">1</span><span class="d" onclick="pickD(this)">2</span><span class="d" onclick="pickD(this)">3</span><span class="d" onclick="pickD(this)">4</span>
+            <span class="d" onclick="pickD(this)">5</span><span class="d" onclick="pickD(this)">6</span><span class="d" onclick="pickD(this)">7</span><span class="d" onclick="pickD(this)">8</span><span class="d" onclick="pickD(this)">9</span><span class="d" onclick="pickD(this)">10</span><span class="d" onclick="pickD(this)">11</span>
+            <span class="d sel" onclick="pickD(this)">12</span><span class="d" onclick="pickD(this)">13</span><span class="d" onclick="pickD(this)">14</span><span class="d" onclick="pickD(this)">15</span><span class="d" onclick="pickD(this)">16</span><span class="d" onclick="pickD(this)">17</span><span class="d" onclick="pickD(this)">18</span>
+            <span class="d" onclick="pickD(this)">19</span><span class="d" onclick="pickD(this)">20</span><span class="d" onclick="pickD(this)">21</span><span class="d" onclick="pickD(this)">22</span><span class="d" onclick="pickD(this)">23</span><span class="d" onclick="pickD(this)">24</span><span class="d" onclick="pickD(this)">25</span>
+            <span class="d" onclick="pickD(this)">26</span><span class="d" onclick="pickD(this)">27</span><span class="d" onclick="pickD(this)">28</span><span class="d" onclick="pickD(this)">29</span><span class="d" onclick="pickD(this)">30</span><span class="d" onclick="pickD(this)">31</span><span class="d dim">1</span>
+          </div>
+        </div>
+
+        <div class="flabel">Elige un Horario</div>
+        <div class="times">
+          <button class="chip" onclick="pick(this)">13:00</button>
+          <button class="chip" onclick="pick(this)">13:30</button>
+          <button class="chip active" onclick="pick(this)">14:00</button>
+          <button class="chip" onclick="pick(this)">14:30</button>
+          <button class="chip" onclick="pick(this)">15:00</button>
+          <button class="chip" onclick="pick(this)">20:00</button>
+        </div>
+
+        <button class="btn" style="margin-top:32px" onclick="go('confirm')">Continuar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONFIRMACIÓN ================= -->
+  <section class="screen" id="confirm" data-status="light">
+    <div style="margin:auto;text-align:center;padding:0 40px">
+      <div class="check"><div class="inner">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      </div></div>
+      <h1 style="font-size:24px;letter-spacing:.08em;color:var(--navy);font-weight:800;margin-top:28px">¡RESERVA ENVIADA!</h1>
+      <p style="font-size:14px;color:var(--muted);margin-top:12px;line-height:1.55">HARRY'S Cancún · 4 personas<br>12 de Octubre · 14:00 hrs<br><br>Recibirás una notificación cuando el restaurante confirme tu reserva.</p>
+      <button class="btn" style="margin-top:36px" onclick="go('home')">Ir a Inicio</button>
+    </div>
+  </section>
+
+  <!-- ================= MIS COMISIONES ================= -->
+  <section class="screen has-nav" id="comisiones" data-status="dark" data-nav="comisiones">
+    <div class="scroll">
+      <div class="com-hero">
+        <div class="sel">Acumulado Mayo <span class="chev"></span></div>
+        <div class="big">$16,820.00</div>
+        <div class="sub">Pagado: $12,000.00 · Pesos Mexicanos</div>
+      </div>
+      <div style="padding:16px 16px 0">
+        <div class="section-title" style="margin-top:2px">MIS COMISIONES</div>
+        <div class="chips">
+          <button class="chip active" onclick="pick(this)">Todas</button>
+          <button class="chip" onclick="pick(this)">Pagadas</button>
+          <button class="chip" onclick="pick(this)">Pendientes</button>
+        </div>
+      </div>
+      <div class="com-list">
+        <div class="crow">
+          <div class="rlogo" style="background:var(--navy)">H</div>
+          <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">HARRY'S</div><div class="t3">Kiko Díaz · 12 de Junio</div></div>
+          <div class="rright"><div class="ramount">MXN 4,120.00</div><div class="status orange">PENDIENTE</div></div>
+        </div>
+        <div class="crow">
+          <div class="rlogo" style="background:#2E5E8C">IL</div>
+          <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">ILIOS</div><div class="t3">Alberto J. Torres · 12 de Junio</div></div>
+          <div class="rright"><div class="ramount">MXN 2,435.00</div><div class="status orange">PENDIENTE</div></div>
+        </div>
+        <div class="crow">
+          <div class="rlogo" style="background:#8C2E3F">N</div>
+          <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">NICOLETTA</div><div class="t3">María Pérez · 8 de Junio</div></div>
+          <div class="rright"><div class="ramount">MXN 5,812.00</div><div class="status green">PAGADA</div></div>
+        </div>
+        <div class="crow">
+          <div class="rlogo" style="background:#3E7C5B">LV</div>
+          <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">LA VICENTA</div><div class="t3">Gustavo Fonseca · 2 de Junio</div></div>
+          <div class="rright"><div class="ramount">MXN 1,541.00</div><div class="status green">PAGADA</div></div>
+        </div>
+        <div class="crow">
+          <div class="rlogo" style="background:#7A4A2B">P</div>
+          <div class="txt"><div class="t1">COMISIÓN</div><div class="t2">PORFIRIO'S</div><div class="t3">Laura Medina · 30 de Mayo</div></div>
+          <div class="rright"><div class="ramount">MXN 2,912.00</div><div class="status green">PAGADA</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NOTIFICACIONES ================= -->
+  <section class="screen has-nav" id="notifs" data-status="light" data-nav="notifs">
+    <div class="appbar">
+      <span style="width:38px"></span>
+      <div class="brand navy">ANDERSON'S</div>
+      <span style="width:38px"></span>
+    </div>
+    <div class="scroll">
+      <div style="padding:18px 16px 24px">
+        <div class="section-title" style="margin-top:4px">NOTIFICACIONES</div>
+        <div class="chips">
+          <button class="chip active" onclick="pick(this)">Todas</button>
+          <button class="chip" onclick="pick(this)">Citas</button>
+          <button class="chip" onclick="pick(this)">No leídas</button>
+        </div>
+        <div class="nitem">
+          <div class="nicon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="ntxt"><div class="nt1">RESERVA CONFIRMADA</div><div class="nt2">HARRY'S Cancún confirmó la reserva de Kiko Díaz para el 12 de Junio, 14:15.</div></div>
+          <div class="ntime">2 min</div><span class="ndot"></span>
+        </div>
+        <div class="nitem">
+          <div class="nicon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          <div class="ntxt"><div class="nt1">DEPÓSITO EN FONDOS</div><div class="nt2">Se depositaron $12,000.00 MXN a tu cuenta Mercado Pago terminación 4567.</div></div>
+          <div class="ntime">1 h</div><span class="ndot"></span>
+        </div>
+        <div class="nitem">
+          <div class="nicon red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+          <div class="ntxt"><div class="nt1">RESERVA CANCELADA</div><div class="nt2">PORFIRIO'S Cancún: la reserva de Carlos Castellón fue cancelada por el cliente.</div></div>
+          <div class="ntime">3 h</div>
+        </div>
+        <div class="nitem">
+          <div class="nicon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <div class="ntxt"><div class="nt1">PENDIENTE DE PAGO</div><div class="nt2">Tu comisión de ILIOS ($2,435.00) está en proceso de pago.</div></div>
+          <div class="ntime">Ayer</div>
+        </div>
+        <div class="nitem">
+          <div class="nicon navy"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></div>
+          <div class="ntxt"><div class="nt1">RESERVA MODIFICADA</div><div class="nt2">NICOLETTA: la reserva de María Pérez cambió a 4 comensales, 20:30 hrs.</div></div>
+          <div class="ntime">Ayer</div>
+        </div>
+        <div class="nitem">
+          <div class="nicon red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="ntxt"><div class="nt1">PAGO FALLIDO</div><div class="nt2">No pudimos depositar tu comisión. Verifica tu Clabe Interbancaria en Perfil.</div></div>
+          <div class="ntime">2 jun</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PERFIL ================= -->
+  <section class="screen has-nav" id="perfil" data-status="light" data-nav="perfil">
+    <div class="scroll">
+      <div class="prof-top">
+        <div class="avatar"></div>
+        <h1>MARIANA TESTERA TORRES</h1>
+        <h2>CONCIERGE</h2>
+      </div>
+      <div style="padding:10px 16px 30px">
+        <div class="pcard">
+          <div class="ptitle">DATOS DE USUARIO</div>
+          <div class="prow">
+            <div class="txt"><div class="l">Teléfono</div><div class="v">+52 998 123 4567</div></div>
+            <span class="copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span>
+          </div>
+          <div class="prow">
+            <div class="txt"><div class="l">E-mail</div><div class="v">mariana.testera@gmail.com</div></div>
+            <span class="copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span>
+          </div>
+          <div class="prow">
+            <div class="txt"><div class="l">Contraseña</div><div class="v">••••••••</div></div>
+            <span class="copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span>
+          </div>
+        </div>
+        <div class="pcard">
+          <div class="ptitle">TIPO DE CONCIERGE</div>
+          <div class="prow"><div class="txt"><div class="v">Comisionista</div></div></div>
+        </div>
+        <div class="pcard">
+          <div class="ptitle">CUENTA MERCADO PAGO</div>
+          <div class="prow">
+            <div class="txt"><div class="l">Clabe Interbancaria</div><div class="v">0123 4567 8901 234567</div></div>
+            <span class="copy"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span>
+          </div>
+          <div class="pnote">Mercado Pago es el único método de pago aceptado para el depósito de comisiones.</div>
+        </div>
+        <div class="pcard">
+          <div class="ptitle">IDENTIFICACIÓN</div>
+          <div class="prow">
+            <div class="txt"><div class="l">INE / Pasaporte</div><div class="v">Documento verificado ✓</div></div>
+            <span class="chev"></span>
+          </div>
+        </div>
+        <button class="logout" onclick="go('login')">Cerrar Sesión</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BOTTOM NAV ================= -->
+  <nav class="bottomnav" id="bottomnav">
+    <button class="nav-item" data-nav="home" onclick="go('home')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      Inicio<span class="ind"></span>
+    </button>
+    <button class="nav-item" data-nav="reservas" onclick="go('reservas')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      Reservas<span class="ind"></span>
+    </button>
+    <button class="nav-item" data-nav="comisiones" onclick="go('comisiones')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.5 8.8h-3.6a1.7 1.7 0 000 3.4h2.2a1.7 1.7 0 010 3.4H9.5"/></svg>
+      Comisiones<span class="ind"></span>
+    </button>
+    <button class="nav-item" data-nav="notifs" onclick="go('notifs')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+      Avisos<span class="ind"></span>
+    </button>
+    <button class="nav-item" data-nav="perfil" onclick="go('perfil')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+      Perfil<span class="ind"></span>
+    </button>
+  </nav>
+
+  <!-- ================= MENÚ OVERLAY ================= -->
+  <div id="menuOverlay">
+    <div class="shade" onclick="closeMenu()"></div>
+    <div class="panel">
+      <button class="close" onclick="closeMenu()" aria-label="Cerrar">✕</button>
+      <div class="brand"><span class="grupo">GRUPO</span>ANDERSON'S</div>
+      <button class="mitem" onclick="closeMenu();go('ciudad')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M12 13.5v5M9.5 16h5"/></svg>
+        Nueva Reserva
+      </button>
+      <button class="mitem" onclick="closeMenu();go('ciudad')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span>Reserva de Grupo<span class="sub">Reservaciones de 13 personas o más</span></span>
+      </button>
+      <button class="mitem" onclick="closeMenu();go('unidad')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        Directorio
+      </button>
+      <button class="mitem" onclick="closeMenu()">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v13H7l-3 3z"/><path d="M8 8.5h8M8 12h5"/></svg>
+        Novedades
+      </button>
+      <button class="mitem" onclick="closeMenu()">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 015.6 1c0 2-2.8 2.3-2.8 4M12 17.5v.5"/></svg>
+        Soporte
+      </button>
+      <button class="mitem logout-m" onclick="closeMenu();go('login')">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const statusbar = document.getElementById('statusbar');
+  const bottomnav = document.getElementById('bottomnav');
+  let current = 'splash';
+
+  function go(id){
+    if (id === current) return;
+    const prev = document.getElementById(current);
+    const next = document.getElementById(id);
+    prev.classList.remove('active');
+    prev.classList.add('behind');
+    setTimeout(() => prev.classList.remove('behind'), 380);
+    next.classList.add('active');
+    next.querySelector('.scroll')?.scrollTo(0, 0);
+    current = id;
+
+    statusbar.classList.toggle('on-dark', next.dataset.status === 'dark');
+
+    const navKey = next.dataset.nav;
+    bottomnav.classList.toggle('show', !!navKey);
+    document.querySelectorAll('.nav-item').forEach(b =>
+      b.classList.toggle('active', b.dataset.nav === navKey));
+  }
+
+  function toggleCard(head){ head.parentElement.classList.toggle('open'); }
+  function pick(chip){
+    chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  }
+  function pickP(el){
+    el.parentElement.querySelectorAll('.pnum').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function pickD(el){
+    el.closest('.cal-grid').querySelectorAll('.d').forEach(c => c.classList.remove('sel'));
+    el.classList.add('sel');
+  }
+  function openMenu(){ document.getElementById('menuOverlay').classList.add('open'); }
+  function closeMenu(){ document.getElementById('menuOverlay').classList.remove('open'); }
+
+  setTimeout(() => go('login'), 2300);
+</script>
+</body>
+</html>
