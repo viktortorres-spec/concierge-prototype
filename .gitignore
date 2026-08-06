@@ -1,0 +1,16 @@
+# Playwright / Chrome MCP screenshots (temporales en raíz)
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+!img/*
+/.playwright-mcp/
+
+# Preview temporal del artifact
+/_artifact_preview.html
+
+# Claude Code
+/.claude/settings.local.json
+
+# macOS
+.DS_Store
