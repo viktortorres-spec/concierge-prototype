@@ -128,30 +128,6 @@
   .iconbtn:active{background:rgba(30,40,55,.07)}
 
   /* ---------- home ---------- */
-  #home .hero{
-    position:relative;height:264px;flex:none;
-    background:#3a4657 url('img/cancun.jpg') center/cover;
-  }
-  #home .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,21,30,.55) 0%,rgba(15,21,30,.05) 45%,rgba(15,21,30,.72) 100%)}
-  #home .hero .topbar{
-    position:absolute;top:52px;left:14px;right:14px;z-index:2;
-    display:flex;align-items:center;
-  }
-  #home .hero .brand{font-size:16px;flex:1;text-align:center}
-  #home .hero .iconbtn{color:#fff}
-  .stats{
-    position:absolute;left:18px;right:18px;bottom:18px;z-index:2;
-    display:flex;gap:12px;
-  }
-  .stat{
-    flex:1;background:rgba(20,28,40,.62);backdrop-filter:blur(8px);
-    border:1px solid rgba(255,255,255,.14);
-    border-radius:16px;padding:12px 14px;color:#fff;
-  }
-  .stat .lbl{font-size:11px;opacity:.8;letter-spacing:.03em}
-  .stat .val{font-size:20px;font-weight:800;margin-top:3px}
-  .stat .val.orange{color:var(--orange-light)}
-  .home-body{padding:18px}
   .section-title{
     font-size:14px;font-weight:800;letter-spacing:.12em;color:var(--navy);
     margin:22px 0 12px;
@@ -304,7 +280,9 @@
   .prof-top{padding:110px 24px 6px;text-align:center;flex:none}
   .avatar{
     width:96px;height:96px;border-radius:50%;margin:0 auto;
-    background:url('https://picsum.photos/seed/mariana-profile/200/200') center/cover;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#243247,#12A6BE);
+    color:#fff;font-family:Georgia,serif;font-weight:700;font-size:30px;letter-spacing:.02em;
     box-shadow:0 0 0 4px #fff,0 6px 16px rgba(20,28,40,.18);
   }
   .prof-top h1{font-size:17px;font-weight:800;letter-spacing:.08em;color:var(--navy);margin-top:14px}
@@ -417,6 +395,53 @@
     background:linear-gradient(90deg,var(--orange),var(--orange-light));
     transition:width 1s cubic-bezier(.3,.8,.3,1) .25s;
   }
+
+  /* ---------- home dashboard ---------- */
+  .dash{padding:56px 16px 20px}
+  .dash-head{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+  .dash-id{flex:1;display:flex;align-items:center;gap:11px;min-width:0}
+  .ava-mono{
+    width:42px;height:42px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#243247,#12A6BE);
+    color:#fff;font-family:Georgia,serif;font-weight:700;font-size:15px;letter-spacing:.02em;
+    box-shadow:0 4px 12px rgba(20,28,40,.2);
+  }
+  .dash-id .hi{font-size:16px;font-weight:800;color:var(--navy);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dash-id .hd{font-size:12px;color:var(--muted);margin-top:1px}
+
+  .balance{
+    border-radius:22px;padding:20px 20px 18px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(150deg,#26334A 0%,var(--navy-deep) 88%);
+    box-shadow:0 12px 26px rgba(20,28,40,.28);
+  }
+  .balance::after{content:"";position:absolute;top:-46px;right:-34px;width:158px;height:158px;border-radius:50%;background:radial-gradient(circle,rgba(199,126,62,.30),transparent 68%)}
+  .bal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;z-index:2}
+  .bal-lbl{font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.7}
+  .bal-big{font-size:34px;font-weight:800;margin-top:6px;letter-spacing:.01em;color:#fff}
+  .bal-big span{font-size:20px;opacity:.6;font-weight:700}
+  .bal-spark{flex:none;margin-top:6px}
+  .bal-foot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:12.5px;position:relative;z-index:2}
+  .bal-hoy{opacity:.85}
+  .bal-hoy b{font-weight:800;opacity:1}
+  .bal-meta{color:var(--orange-light);font-weight:700}
+  .bal-bar{height:6px;background:rgba(255,255,255,.15);border-radius:3px;margin-top:9px;overflow:hidden;position:relative;z-index:2}
+  .bal-bar i{display:block;height:100%;width:0;border-radius:3px;background:linear-gradient(90deg,var(--orange),var(--orange-light));transition:width 1s cubic-bezier(.3,.8,.3,1) .3s}
+
+  .quick{display:flex;gap:10px;margin-top:16px}
+  .qtile{
+    flex:1;border:1.4px solid var(--line);background:#fff;border-radius:16px;
+    padding:14px 6px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    font-size:11.5px;font-weight:700;color:var(--navy);cursor:pointer;letter-spacing:.02em;
+    box-shadow:var(--card-shadow);transition:transform .12s;
+  }
+  .qtile:active{transform:scale(.96)}
+  .qtile .qic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(30,40,55,.06);color:var(--navy)}
+  .qtile-primary{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 8px 18px rgba(199,126,62,.32)}
+  .qtile-primary .qic{background:rgba(255,255,255,.2);color:#fff}
+
+  .dash-row-head{display:flex;align-items:center;justify-content:space-between;margin:26px 0 4px}
+  .seeall{border:none;background:none;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -473,34 +498,75 @@
     </div>
   </section>
 
-  <!-- ================= HOME ================= -->
-  <section class="screen has-nav" id="home" data-status="dark" data-nav="home">
+  <!-- ================= HOME (dashboard) ================= -->
+  <section class="screen has-nav" id="home" data-status="light" data-nav="home">
     <div class="scroll">
-      <div class="hero">
-        <div class="topbar">
+      <div class="dash">
+        <div class="dash-head">
           <button class="iconbtn" onclick="openMenu()" aria-label="Menú">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M3 6h16M3 11h16M3 16h10"/></svg>
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h16M3 11h16M3 16h10"/></svg>
           </button>
-          <div class="brand">CONCIERGE</div>
+          <div class="dash-id">
+            <div class="ava-mono">MT</div>
+            <div style="min-width:0">
+              <div class="hi">Hola, Mariana 👋</div>
+              <div class="hd" id="greetDate"></div>
+            </div>
+          </div>
           <button class="iconbtn" onclick="go('notifs')" aria-label="Notificaciones" style="position:relative">
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
             <span class="badge notif-badge">2</span>
           </button>
         </div>
-        <div class="greet"><div class="h">Hola, Mariana 👋</div><div class="d" id="greetDate"></div></div>
-        <div class="stats">
-          <div class="stat"><div class="lbl">Comisiones de Hoy</div><div class="val">$0.00</div></div>
-          <div class="stat"><div class="lbl">Acumulado Mes</div><div class="val orange">$12,000.00</div></div>
+
+        <div class="balance">
+          <div class="bal-top">
+            <div>
+              <div class="bal-lbl">ACUMULADO MES</div>
+              <div class="bal-big">$12,000<span>.00</span></div>
+            </div>
+            <svg class="bal-spark" width="96" height="46" viewBox="0 0 96 46" fill="none">
+              <defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#E09A5A" stop-opacity=".45"/>
+                <stop offset="1" stop-color="#E09A5A" stop-opacity="0"/>
+              </linearGradient></defs>
+              <path d="M2 34 L18 30 L32 33 L46 22 L60 25 L74 13 L94 6 L94 46 L2 46 Z" fill="url(#spg)"/>
+              <path d="M2 34 L18 30 L32 33 L46 22 L60 25 L74 13 L94 6" stroke="#E09A5A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="94" cy="6" r="3" fill="#E09A5A"/>
+            </svg>
+          </div>
+          <div class="bal-foot">
+            <span class="bal-hoy">Comisiones de hoy <b>$0.00</b></span>
+            <span class="bal-meta">Meta 84%</span>
+          </div>
+          <div class="bal-bar"><i id="goalBarHome"></i></div>
         </div>
-      </div>
-      <div class="home-body" id="homeList">
-        <button class="btn" onclick="go('ciudad')">Nueva Reserva</button>
-        <div class="section-title">MIS RESERVAS</div>
-        <div class="chips">
-          <button class="chip active" data-box="homeList" data-val="hoy" onclick="filt(this)">Para Hoy</button>
-          <button class="chip" data-box="homeList" data-val="semana" onclick="filt(this)">Esta Semana</button>
-          <button class="chip" data-box="homeList" data-val="mes" onclick="filt(this)">Último Mes</button>
+
+        <div class="quick">
+          <button class="qtile qtile-primary" onclick="go('ciudad')">
+            <span class="qic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+            Nueva Reserva
+          </button>
+          <button class="qtile" onclick="go('reservas')">
+            <span class="qic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>
+            Reservas
+          </button>
+          <button class="qtile" onclick="go('comisiones')">
+            <span class="qic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.5 8.8h-3.6a1.7 1.7 0 000 3.4h2.2a1.7 1.7 0 010 3.4H9.5"/></svg></span>
+            Comisiones
+          </button>
         </div>
+
+        <div id="homeList">
+          <div class="dash-row-head">
+            <div class="section-title" style="margin:0">PRÓXIMAS RESERVAS</div>
+            <button class="seeall" onclick="go('reservas')">Ver todas</button>
+          </div>
+          <div class="chips">
+            <button class="chip active" data-box="homeList" data-val="hoy" onclick="filt(this)">Para Hoy</button>
+            <button class="chip" data-box="homeList" data-val="semana" onclick="filt(this)">Esta Semana</button>
+            <button class="chip" data-box="homeList" data-val="mes" onclick="filt(this)">Último Mes</button>
+          </div>
         <div class="rcard" data-tags="hoy semana mes">
           <div class="rcard-head" onclick="toggleCard(this)">
             <div class="rlogo" style="background:#2E5E8C">IL</div>
@@ -546,7 +612,8 @@
             </div>
           </div>
         </div>
-        <div class="empty">Sin reservas en este periodo</div>
+          <div class="empty">Sin reservas en este periodo</div>
+        </div>
       </div>
     </div>
   </section>
@@ -866,7 +933,7 @@
   <section class="screen has-nav" id="perfil" data-status="light" data-nav="perfil">
     <div class="scroll">
       <div class="prof-top">
-        <div class="avatar"></div>
+        <div class="avatar">MT</div>
         <h1>MARIANA TESTERA TORRES</h1>
         <h2>CONCIERGE</h2>
       </div>
@@ -941,7 +1008,7 @@
       <button class="close" onclick="closeMenu()" aria-label="Cerrar">✕</button>
       <div class="brand">CONCIERGE</div>
       <div style="display:flex;align-items:center;gap:12px;margin:-16px 0 24px">
-        <div style="width:44px;height:44px;border-radius:50%;flex:none;background:url('https://picsum.photos/seed/mariana-profile/100/100') center/cover;box-shadow:0 0 0 2px rgba(255,255,255,.2)"></div>
+        <div style="width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#12A6BE,#243247);color:#fff;font-family:Georgia,serif;font-weight:700;font-size:15px;box-shadow:0 0 0 2px rgba(255,255,255,.2)">MT</div>
         <div>
           <div style="font-size:14px;font-weight:700">Mariana Testera</div>
           <div style="font-size:10.5px;color:#8E97A6;letter-spacing:.16em;margin-top:2px">CONCIERGE · HOTEL 1</div>
@@ -1012,6 +1079,7 @@
 
     statusbar.classList.toggle('on-dark', next.dataset.status === 'dark');
     if (id === 'comisiones') document.getElementById('goalBar').style.width = '84%';
+    if (id === 'home') document.getElementById('goalBarHome').style.width = '84%';
 
     const navKey = next.dataset.nav;
     bottomnav.classList.toggle('show', !!navKey);
